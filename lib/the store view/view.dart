@@ -1,5 +1,5 @@
 
-import 'package:assiment_2/the%20store%20view/storeProvider.dart';
+import 'storeProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../model.dart';

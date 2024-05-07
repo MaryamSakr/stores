@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../CurrentLocation.dart';
 import '../StoresDB.dart';
 
 class FavoriteStoresScreen extends StatelessWidget {
@@ -26,6 +27,7 @@ class FavoriteStoresScreen extends StatelessWidget {
                 : Text('No Image'),
             onTap: () {
               // Navigate to a detailed page or perform an action
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CurrentLocation(x: item['x'], y: item['y'])));
             },
           );
         },

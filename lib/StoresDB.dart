@@ -131,7 +131,7 @@ class Stores extends ChangeNotifier {
       deleteFavData(store['name']);
     } else {
       // Add to favorites
-      insertDatabaseFav(name: store['name'], city: store['city'], x: store['x'], y: store['y']);
+      insertDatabaseFav(name: store['name'], city: store['city'], x: store['x'], y: store['y'], imageBytes: store['image']);
     }
     // Update favoriteData list
     getDataFavorite();

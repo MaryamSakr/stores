@@ -12,6 +12,7 @@ void main() {
     ChangeNotifierProvider(
       create: (context) => Stores(),
       child: MaterialApp(
+        debugShowCheckedModeBanner:false,
         home: MyBottomNavigationBar(0),
       ),
     ),
