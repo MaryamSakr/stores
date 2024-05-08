@@ -14,6 +14,7 @@ class Stores extends ChangeNotifier {
 
   late Database database;
   List<Map<String, dynamic>> storesData = [];
+  List<Map<String, dynamic>> CustomerData = [];
   List<Map<String, dynamic>> favoriteData = [];
   bool services = false;
   var per;
@@ -39,7 +40,10 @@ class Stores extends ChangeNotifier {
           'CREATE TABLE stores (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, image BLOB, city TEXT , x INTEGER , y  INTEGER)',
         );
         db.execute(
-          'CREATE TABLE fav (id INTEGER PRIMARY KEY, name TEXT, image BLOB, city TEXT , x INTEGER , y  INTEGER)',
+          'CREATE TABLE fav (id INTEGER PRIMARY KEY, name TEXT, image BLOB, city TEXT , x INTEGER , y  INTEGER , customerId TEXT )',
+        );
+        db.execute(
+          'CREATE TABLE customers (id TEXT PRIMARY KEY, name TEXT, gender TEXT , level TEXT , email TEXT , password TEXT )',
         );
       },
     );
@@ -51,6 +55,56 @@ class Stores extends ChangeNotifier {
   getPostion() async {
     // Your implementation here
   }
+
+
+  insertDataCustomer({
+    required String name,
+    required String id,
+    required String Gender,
+    required String Email,
+    required String Password,
+    required String Level,
+
+  }) async {
+    await database.transaction((txn) async {
+      await txn.rawInsert(
+        'INSERT INTO customers (id , name , gender  , level  , email  , password  ) VALUES (? , ?, ? , ? , ? , ?)',
+        [id, name, Gender, Level, Email, Password],
+      );
+    });
+  }
+
+  getDataCustomer(String customerID) async {
+
+    List<Map<String, dynamic>> CustomerDataSign= await database.rawQuery('SELECT * FROM customers WHERE id = ${customerID}');
+    if(CustomerDataSign.isEmpty){
+      notifyListeners();
+      return null;
+    }else{
+      notifyListeners();
+      return CustomerDataSign;
+    }
+
+  }
+
+  checkLogin(String Email , String Pass)async{
+    List<Map<String, dynamic>> CustomerDataLogin = await database.rawQuery('SELECT * FROM customers WHERE email = \'$Email\' AND password = \'$Pass\'');
+    if(CustomerDataLogin.isEmpty){
+      notifyListeners();
+      return null;
+    }else{
+      notifyListeners();
+      return CustomerDataLogin;
+    }
+  }
+
+  getAllDataCustomer() async {
+    CustomerData= await database.rawQuery('SELECT * FROM customers');
+    notifyListeners();
+
+  }
+
+
 
   insertDataStores({
     required String name,
@@ -81,28 +135,30 @@ class Stores extends ChangeNotifier {
     required String city,
     required int x,
     required int y,
+    required String customerId,
 
   }) async {
     await database.transaction((txn) async {
 
       await txn.rawInsert(
-        'INSERT INTO fav(name, image, city ,x ,y) VALUES(?, ?, ?,?,?)',
-        [name, imageBytes, city , x , y],
+        'INSERT INTO fav(name, image, city ,x ,y , customerId) VALUES(?, ?, ?,?,? , ?)',
+        [name, imageBytes, city , x , y , customerId],
       );
     });
 
-    getDataFavorite();
+    getDataFavorite(customerId);
   }
 
-  getDataFavorite() async {
-    favoriteData = await database.rawQuery('SELECT * FROM fav');
+  getDataFavorite(String CustID) async {
+    favoriteData = await database.rawQuery('SELECT * FROM fav WHERE customerId = \'$CustID\'');
     notifyListeners();
   }
 
 
-  deleteFavData(String name) async {
+
+  deleteFavData(String name , String customerId) async {
     await database.rawDelete('DELETE FROM fav WHERE name = ?', [name]);
-    getDataFavorite();
+    getDataFavorite(customerId);
   }
 
   deleteStoresData() async {
@@ -110,6 +166,15 @@ class Stores extends ChangeNotifier {
     getDataStores();
   }
 
+  deleteUsers() async {
+    await database.rawDelete('DELETE FROM customers');
+    getAllDataCustomer();
+  }
+
+  // deleteAllFav() async {
+  //   await database.rawDelete('DELETE FROM fav');
+  //   getDataFavorite();
+  // }
 
   void changeNav() {
     // Your implementation here
@@ -119,22 +184,23 @@ class Stores extends ChangeNotifier {
     // Your implementation here
   }
 
+  // bool isFavorite(Map<String, dynamic> store) {
+  //   return favoriteData.any((favorite) => favorite['id'] == store['id']);
+  // }
+
+
   bool isFavorite(Map<String, dynamic> store) {
-    return favoriteData.any((favorite) => favorite['id'] == store['id']);
+    return favoriteData.any((favorite) => favorite['name'] == store['name'] && favorite['city']==store['city']&& favorite['x']==store['x']&& favorite['y']==store['y']);
   }
 
-
-
-  void toggleFavorite(Map<String, dynamic> store) {
+  void toggleFavorite(Map<String, dynamic> store , String CustID) {
     if (isFavorite(store)) {
-      // Remove from favorites
-      deleteFavData(store['name']);
+      deleteFavData(store['name'] , CustID);
     } else {
-      // Add to favorites
-      insertDatabaseFav(name: store['name'], city: store['city'], x: store['x'], y: store['y'], imageBytes: store['image']);
+      insertDatabaseFav(name: store['name'], city: store['city'], x: store['x'], y: store['y'], imageBytes: store['image'] , customerId:CustID );
     }
     // Update favoriteData list
-    getDataFavorite();
+    getDataFavorite( CustID);
     notifyListeners();
   }
 
